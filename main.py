@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 import models, schemas
@@ -31,4 +31,33 @@ def create_expense(expense: schemas.ExpenseCreate, db: Session = Depends(get_db)
 
 @app.get("/expenses", response_model=list[schemas.ExpenseOut])
 def list_expenses(db: Session = Depends(get_db)):
-    return db.query(models.Expense).order_by(models.Expense.date.desc()).all
+    return db.query(models.Expense).order_by(models.Expense.date.desc()).all()
+
+
+def get_expense_or_404(expense_id: int, db: Session) -> models.Expense:
+    expense = db.query(models.Expense).filter(models.Expense.id == expense_id).first()
+    if expense is None:
+        raise HTTPException(status_code=404, detail="Expense not found")
+    return expense
+
+
+@app.get("/expenses/{expense_id}", response_model=schemas.ExpenseOut)
+def get_expense(expense_id: int, db: Session = Depends(get_db)):
+    return get_expense_or_404(expense_id, db)
+
+
+@app.put("/expenses/{expense_id}", response_model=schemas.ExpenseOut)
+def update_expense(expense_id: int, updated: schemas.ExpenseCreate, db: Session = Depends(get_db)):
+    expense = get_expense_or_404(expense_id, db)
+    for field, value in updated.model_dump().items():
+        setattr(expense, field, value)
+    db.commit()
+    db.refresh(expense)
+    return expense
+
+
+@app.delete("/expenses/{expense_id}", status_code=204)
+def delete_expense(expense_id: int, db: Session = Depends(get_db)):
+    expense = get_expense_or_404(expense_id, db)
+    db.delete(expense)
+    db.commit()
