@@ -1,5 +1,7 @@
 from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import Session
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 
 import models, schemas
 from database import engine, SessionLocal
@@ -15,9 +17,15 @@ def get_db():
     finally:
         db.close()
 
-@app.get("/")
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+@app.get("/", include_in_schema=False)
 def home():
-    return {"message": "Expense tracker is running"}
+    return FileResponse("static/index.html")
+
+# @app.get("/")
+# def home():
+#     return {"message": "Expense tracker is running. I really need to go back to the begining"}
 
 
 @app.post("/expenses", response_model=schemas.ExpenseOut, status_code=201)
