@@ -3,7 +3,7 @@ const list = document.getElementById("expense-list");
 const message = document.getElementById("message");
 
 //default the date field to today (local time)
-document.getElementById("date").value = new Date().toLocalDateString("en-CA");
+document.getElementById("date").value = new Date().toLocaleDateString("en-CA");
 
 async function loadExpenses() {
     try {
@@ -60,7 +60,7 @@ form.addEventListener("submit", async (event) => {
         if (!res.ok) throw new Error("Could not add the expense. Check your input.");
 
         form.reset();
-        document.getElementById("date").value = new Date(). toLocaleDateString("en-CA");
+        document.getElementById("date").value = new Date().toLocaleDateString("en-CA");
         loadExpenses();
     } catch (err) {
             message.textContent = err.message;
